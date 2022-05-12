@@ -1,45 +1,41 @@
 import hashlib
-from itertools import chain
 import json
-from re import L
-from tabnanny import check
 from time import time
-from typing_extensions import Self
-from socket_serve import *
-from sqlalchemy import false
+from numpy import object0
+
+from sqlalchemy import false, true
 
 class Blockchain(object):
-    def _init_(self):
+    def __init__(self):
         self.current_message = [] #json message
         self.chain = []
-        self.new_block(previous_hash = 1 , proof = 100)
-
+    def hash(self,block):
+        print("hashing")
+        encoded_block = json.dumps(block["message"], sort_keys=True).encode()
+        return hashlib.sha256(encoded_block).hexdigest()
     def new_message(self,m):
         self.current_message = m
         
     def new_block(self, proof, previous_hash=None):
- 
         block = {
             'index': len(self.chain) + 1,
-            'timestamp': time(),
+            'timestamp': None,
             'message': self.current_message,
-            'proof': proof, #proof id
+            'proof': None, #proof id
             'hash': None,
             'previous_hash': previous_hash,
-            'accept':false,
+            'accept':None,
             'accept_info': None
         }
-        self.current_transactions = []
+        print(block)
         self.chain.append(block)
+        self.chain[-1]["hash"] = self.hash(block)
         return block
 
     def show_block(self):
         return self.chain
-    
-    def hash(self, block):
-        encoded_block = json.dumps(block, sort_keys=True).encode()
-        return hashlib.sha256(encoded_block).hexdigest()
-    def proof_accept(self,account,password,b,p):
+
+    def proof_accept(self,account,password,b,p,others):
         if [account,password,b,p] in others:
             print('{} accept mission'.format(account))
             return true
@@ -69,14 +65,20 @@ class Blockchain(object):
         else:
             return true
     #return false if seriously problem
+    def same_chain(self,others_chain):
+        if self.chain == others_chain:
+            return true
+        else: return
     def check_mutual_chain(self,others_chain):
         print("Checking mutual chain")
         v=-1
         if len(self.chain) > len(others_chain):
-            others_chain.extend(self.chain[len(others_chain)])
+            others_chain.extend(self.chain[len(others_chain):])
         elif len(self.chain) < len(others_chain):
-            self.chain.extend(others_chain[len(self.chain)])
-        for i,j in self.chain,others_chain:
+            self.chain.extend(others_chain[len(self.chain):])
+        for i,j in zip(self.chain,others_chain):
+            print(i)
+            print(j)
             v+=1
             if i["hash"]!= j["hash"]:
                 print("collapse...solving")

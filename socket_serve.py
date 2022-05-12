@@ -1,12 +1,9 @@
-from email.headerregistry import Address
-from multiprocessing import Lock
 from socket import *
 import socketserver
-import string
-from telnetlib import IP
 import threading,sys,json,re
 from sqlalchemy import false, true
-from blockChain import Blockchain
+from blockChain import Blockchain 
+import time
 #定義json格式
 '''
     message = {
@@ -18,20 +15,14 @@ from blockChain import Blockchain
 
     message = {
         "category" = 2 #helping message
-        "Location": {
-            "Latitude": 24.941764,
-            "Longitude": 121.367751,
-            "Other": ""
-        },
-        "Text": "Need some water",
-        "Timestamp": 1650635046,
-        "Contact": "+886987654321"
+        "block" = self.block
     }
 
     message = {
         "category" = 3 #refresh connection list
         "others" = [[ip,port],]
     }
+
 '''
 
 def register():
@@ -92,14 +83,16 @@ class MyServer(socketserver.BaseRequestHandler):
 
             elif dataobj["category"] == 3:
                 print("receive...mutual conn list")
+                print(dataobj["others"])
                 for i in dataobj["others"]:
                     find = false
-                    for j in others[1:]:
+                    for j in others:
                         if j[2] == i[2] and j[3] == i[3]:
                             find =true
-                            break
-                    if find == false and (i[2]!= IP_a and i[3]!= Port):
+                            break 
+                    if find == false:
                         print("Adding new client")
+                        others.append(i)
                         tcpCliSock = socket(AF_INET,SOCK_STREAM)
                         #tcpCliSock.bind(IP,Port)
                         tcpCliSock.connect((j[2],j[3]))
@@ -108,14 +101,27 @@ class MyServer(socketserver.BaseRequestHandler):
                         tcpCliSock.close()
                 break
             elif dataobj["category"] == 2:
-                #create new message block 
+                if block.same_chain(dataobj["block"]):
+                    break
+                block.check_mutual_chain(dataobj["block"])
+                Send_to_others()
                 break
             else:
                 print("cannot read message")
                 print(dataobj)
                 break
-
-
+def Send_to_others():
+    for i in others[1:]:
+        tcpCliSock = socket(AF_INET,SOCK_STREAM)
+        #tcpCliSock.bind(IP,Port)
+        tcpCliSock.connect((i[2],i[3]))
+        send_block =  dict()
+        send_block["category"] = 2
+        send_block["block"] = block.chain
+        datastr = json.dumps(send_block)
+        tcpCliSock.send(datastr.encode('utf-8'))
+        tcpCliSock.close()
+        print("send message to all...")
 def open_server():
     global IP_a
     global Port
@@ -147,10 +153,41 @@ def sending_Client(regINfo,tar_ip,tar_port):
         print("send to target")
     tcpCliSock.close()
 
+def Send_help(latitude,longtitude,Text,contact):
+    message = dict()
+    message["Location"] = dict()
+    message["Location"]["Latitude"] = latitude
+    message["Location"]["Longitude"] = longtitude
+    message["Text"] = Text
+    message["Contact"] = contact
+    t = time.localtime()
+    result = time.strftime("%m/%d/%Y,%H:%M:%S", t)
+    message["Timestamp"] = result
+    block.new_message(message)
+    if len(block.chain) == 0 :
+        block.new_block(false)
+    else: block.new_block(false,block.show_block()[-1]["hash"])
+    Send_to_others()
+    return
+
+def Accept(index):
+    if block.check_hash_all() != true:
+        return block.check_hash_all()# return places with mistake
+    if block.chain[index]["accept"] == true:
+        print("The task has already been accepted by other")
+        return
+    block.chain[index]["accept"] = true
+    block.chain[index]["accept_info"] = others[0] #自己的account password port ip
+    tcpCliSock = socket(AF_INET,SOCK_STREAM)
+    Send_to_others()
+    return
+
 def main():
     print("alert: press Y while server function block the register")
     global regINfo
     regINfo = register()
+    global block
+    block = Blockchain()
     if(regINfo == None):
         return
     print(regINfo)
@@ -161,13 +198,22 @@ def main():
             tar_ip = input("Input the ip you want to connect:")
             tar_port = int(input("Input the port you want to connect:"))
             sending_Client(regINfo,tar_ip,tar_port)
-        elif com == 'Show other':
+        elif com == 'Show others':
             print(others)
-        
+        elif com == 'Show block':
+            print(block.chain)
+        elif com == 'Send':
+            latitude = input("Latitude:")
+            longtitude = input("Longitude")
+            Text = input("Text")
+            contact = input("contact")
+            Send_help(latitude,longtitude,Text,contact)
+        elif com == 'accept':
+            index = input("Accept index")
+            Accept(index)
+        else: 
+            print("wrong command")
+            continue
 
 if __name__ == '__main__':
     main()
-
-
-                    
-                
