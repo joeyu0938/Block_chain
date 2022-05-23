@@ -24,7 +24,8 @@ import time
     }
 
 '''
-
+#註冊的函式(如果不需要的話可以自動分配)
+#傳回註冊的訊息(包含要傳的東西)
 def register():
     myre = r"^[_a-zA-Z]\w{0,}"
     #正則驗證使用者名稱是否合乎規範
@@ -44,7 +45,7 @@ def register():
     tmp["account"] = accout
     tmp["password"] = password1
     return tmp
-
+#listen的server thread: 用於接收傳進來的資料
 class MyServer(socketserver.BaseRequestHandler):
     def handle(self):
         print("\ngot connection from",self.client_address)
@@ -110,6 +111,7 @@ class MyServer(socketserver.BaseRequestHandler):
                 print("cannot read message")
                 print(dataobj)
                 break
+#將local chain傳到紀錄所有的client
 def Send_to_others():
     for i in others[1:]:
         tcpCliSock = socket(AF_INET,SOCK_STREAM)
@@ -122,6 +124,7 @@ def Send_to_others():
         tcpCliSock.send(datastr.encode('utf-8'))
         tcpCliSock.close()
         print("send message to all...")
+#打開server 開始監聽
 def open_server():
     global IP_a
     global Port
@@ -138,7 +141,7 @@ def open_server():
     server_thread = threading.Thread(target=server.serve_forever)
     server_thread.start()
     print("Starting Server ......")
-
+#傳入使用者註冊的資料(自己)、(目標的)IP、Port 
 def sending_Client(regINfo,tar_ip,tar_port):
     print("Running register")
     tcpCliSock = socket(AF_INET,SOCK_STREAM)
@@ -152,7 +155,7 @@ def sending_Client(regINfo,tar_ip,tar_port):
         tcpCliSock.send(datastr.encode('utf-8'))
         print("send to target")
     tcpCliSock.close()
-
+#傳入 經緯度、附帶的訊息、聯絡方式(建立新的BLOCK)
 def Send_help(latitude,longtitude,Text,contact):
     message = dict()
     message["Location"] = dict()
@@ -167,9 +170,9 @@ def Send_help(latitude,longtitude,Text,contact):
     if len(block.chain) == 0 :
         block.new_block(false)
     else: block.new_block(false,block.show_block()[-1]["hash"])
-    Send_to_others()
+    Send_to_others()#傳給其他人lOCAL BLOCKCAHIN
     return
-
+#傳入第幾個BLOCK(在BLOCK上加帶確認接受)
 def Accept(index):
     if block.check_hash_all() != true:
         return block.check_hash_all()# return places with mistake
