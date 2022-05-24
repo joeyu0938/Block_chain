@@ -166,6 +166,7 @@ def Send_help(latitude,longtitude,Text,contact):
     t = time.localtime()
     result = time.strftime("%m/%d/%Y,%H:%M:%S", t)
     message["Timestamp"] = result
+    message["Account"] = regINfo["account"]
     block.new_message(message)
     if len(block.chain) == 0 :
         block.new_block(false)
@@ -186,7 +187,7 @@ def Accept(index):
     return
 
 def main():
-    print("alert: press Y while server function block the register")
+    print("alert: press R while server function block the register")
     global regINfo
     regINfo = register()
     global block
@@ -214,6 +215,8 @@ def main():
         elif com == 'accept':
             index = input("Accept index")
             Accept(index)
+        elif com == 'R':
+            continue
         else: 
             print("wrong command")
             continue
