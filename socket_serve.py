@@ -4,6 +4,8 @@ import threading,sys,json,re
 from sqlalchemy import false, true
 from blockChain import Blockchain 
 import time
+from flask import Flask, Response, request
+from flask_cors import CORS, cross_origin
 #定義json格式
 '''
     message = {
@@ -156,15 +158,14 @@ def sending_Client(regINfo,tar_ip,tar_port):
         print("send to target")
     tcpCliSock.close()
 #傳入 經緯度、附帶的訊息、聯絡方式(建立新的BLOCK)
-def Send_help(latitude,longtitude,Text,contact):
+#多傳入timestamp
+def Send_help(location,Text,contact,result):
     message = dict()
-    message["Location"] = dict()
-    message["Location"]["Latitude"] = latitude
-    message["Location"]["Longitude"] = longtitude
+    message["Location"] = location
     message["Text"] = Text
     message["Contact"] = contact
-    t = time.localtime()
-    result = time.strftime("%m/%d/%Y,%H:%M:%S", t)
+    # t = time.localtime()
+    # result = time.strftime("%m/%d/%Y,%H:%M:%S", t)
     message["Timestamp"] = result
     message["Account"] = regINfo["account"]
     block.new_message(message)
@@ -221,5 +222,54 @@ def main():
             print("wrong command")
             continue
 
+app=Flask(__name__)
+CORS(app)
+app.config['CORS_HEADERS'] = 'Content-Type'
+
+@app.route('/get_issue_form_backend', methods=['GET'])
+@cross_origin()
+def get_issue_form_backend():
+    return Response('123', status=(200))
+
+@app.route('/post_issue', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def post_issue():
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        print("cors ok")
+        return ('cors ok', 204, headers)
+    elif request.method != 'POST':
+        print('only post allow!')
+    else:
+        data_dict = json.loads(request.get_data())
+        #前端給的json資料放入Send_help
+        Send_help(data_dict["location"], data_dict["message"], data_dict["contact"], data_dict["timestamp"])
+        return Response('123', status=(200))
+
+@app.route('/post_problem_resolve', methods=['POST', 'OPTIONS'])
+@cross_origin()
+def post_problem_resolve():
+    if request.method == 'OPTIONS':
+        headers = {
+            'Access-Control-Allow-Origin': '*',
+            'Access-Control-Allow-Methods': 'POST',
+            'Access-Control-Allow-Headers': 'Content-Type',
+            'Access-Control-Max-Age': '3600'
+        }
+        print("cors ok")
+        return ('cors ok', 204, headers)
+    elif request.method != 'POST':
+        print('only post allow!')
+    else:
+        data_dict = json.loads(request.get_data())
+        return Response('123', status=(200))
+
+
 if __name__ == '__main__':
     main()
+    app.run(host='127.0.0.1',port=21, debug=True, use_reloader=False)
