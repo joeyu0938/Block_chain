@@ -24,7 +24,7 @@ class Blockchain(object):
             'proof': None, #proof id
             'hash': None,
             'previous_hash': previous_hash,
-            'accept':None,
+            'accept': "false",
             'accept_info': None
         }
         print(block)
@@ -55,7 +55,7 @@ class Blockchain(object):
         v = 0
         for i in self.chain[1:]:
             v+=1
-            if i['previous_hash'] != hash(i-1):
+            if i['previous_hash'] != self.hash(self.chain[v-1]):
                 return v
         return true
     def check_hash(self,ch,place_hold):
@@ -72,16 +72,18 @@ class Blockchain(object):
     def check_mutual_chain(self,others_chain):
         print("Checking mutual chain")
         v=-1
+        #長度變一樣
         if len(self.chain) > len(others_chain):
             others_chain.extend(self.chain[len(others_chain):])
         elif len(self.chain) < len(others_chain):
             self.chain.extend(others_chain[len(self.chain):])
+        #
+        print("collapse...solving")
+        print(f'self chain{self.chain}')
+        print(f'others chain{others_chain}')
         for i,j in zip(self.chain,others_chain):
-            print(i)
-            print(j)
             v+=1
             if i["hash"]!= j["hash"]:
-                print("collapse...solving")
                 if self.check_hash(self.chain,v) == false and self.check_hash(others_chain,v) != false:
                     self.chain[v] = others_chain[v]
                     continue
@@ -100,6 +102,7 @@ class Blockchain(object):
                     continue
                 print("collapse seriously......")
                 return false
+        self.chain = others_chain
         print("finish_merging")
         return true
 

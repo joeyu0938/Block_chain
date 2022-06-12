@@ -81,6 +81,7 @@ class MyServer(socketserver.BaseRequestHandler):
                     tcpCliSock.send(datastr.encode('utf-8'))
                     tcpCliSock.close()
                     print("send mutual conn List")
+                Send_to_others()
                 print("mutual list {}".format(others))
                 break
 
@@ -127,15 +128,19 @@ def Send_to_others():
         tcpCliSock.close()
         print("send message to all...")
 #打開server 開始監聽
-def open_server():
+def open_server(ip , p):
     global IP_a
     global Port
-    IP_a = input("Enter your IP: ")
-    Port = int(input("Port you want to listen: "))
+    global regINfo
+    regINfo = dict()
+    IP_a = ip
+    Port = p
     server = socketserver.ThreadingTCPServer((IP_a,Port),MyServer)
+    regINfo["category"] = 1
     regINfo["listening_port"] = Port 
+    regINfo["account"] = IP_a
+    regINfo["password"] = Port
     print('waiting for connection...')
-    print(regINfo)
     global others #包含自己 為鏈上所有人的port,ip
     others = []
     others.append([regINfo["account"],regINfo["password"],IP_a,Port]) #加入自己
@@ -168,6 +173,7 @@ def Send_help(location,Text,contact,result):
     # result = time.strftime("%m/%d/%Y,%H:%M:%S", t)
     message["Timestamp"] = result
     message["Account"] = regINfo["account"]
+    message["Password"] = regINfo["password"]
     block.new_message(message)
     if len(block.chain) == 0 :
         block.new_block(false)
@@ -176,27 +182,27 @@ def Send_help(location,Text,contact,result):
     return
 #傳入第幾個BLOCK(在BLOCK上加帶確認接受)
 def Accept(index):
+    index = int(index)
     if block.check_hash_all() != true:
         return block.check_hash_all()# return places with mistake
-    if block.chain[index]["accept"] == true:
+    if block.chain[index]["accept"] == "true":
         print("The task has already been accepted by other")
         return
-    block.chain[index]["accept"] = true
+    block.chain[index]["accept"] = "true"
     block.chain[index]["accept_info"] = others[0] #自己的account password port ip
-    tcpCliSock = socket(AF_INET,SOCK_STREAM)
     Send_to_others()
     return
 
 def main():
     print("alert: press R while server function block the register")
-    global regINfo
-    regINfo = register()
-    global block
-    block = Blockchain()
+    I= input("Enter your IP: ")
+    P= int(input("Port you want to listen: "))
+    open_server(I,P)
     if(regINfo == None):
         return
     print(regINfo)
-    open_server()
+    global block
+    block = Blockchain()
     while true:    
         com =input("Command: ") 
         if com == 'Y':
