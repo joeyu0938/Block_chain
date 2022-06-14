@@ -4,7 +4,7 @@ import threading,sys,json,re
 from sqlalchemy import false, true
 from blockChain import Blockchain 
 import time
-from flask import Flask, Response, request
+from flask import Flask, Response, request, jsonify
 from flask_cors import CORS, cross_origin
 #定義json格式
 '''
@@ -183,6 +183,7 @@ def Send_help(location,Text,contact,timestemp):
 #傳入第幾個BLOCK(在BLOCK上加帶確認接受)
 def Accept(index):
     index = int(index)
+    index = index-1
     if block.check_hash_all() != true:
         return block.check_hash_all()# return places with mistake
     if block.chain[index]["accept"] == "true":
@@ -193,9 +194,7 @@ def Accept(index):
     Send_to_others()
     return
 
-def main():
-    global quit
-    quit = false
+def init():
     print("alert: press R while server function block the register")
     # I= input("Enter your IP: ")
     # P= int(input("Port you want to listen: "))
@@ -212,36 +211,33 @@ def main():
     P = temps.getsockname()[1]
 
     open_server(I,P)
-    if(regINfo == None):
-        return
     print(regINfo)
     global block
     block = Blockchain()
+
+def main():
     while true:    
         com =input("Command: ") 
         if com == 'Y':
             tar_ip = input("Input the ip you want to connect:")
             tar_port = int(input("Input the port you want to connect:"))
             sending_Client(regINfo,tar_ip,tar_port)
-        elif com == 'Show others':
+        elif com == 'show others':
             print(others)
-        elif com == 'Show block':
+        elif com == 'show block':
             print(block.chain)
-        elif com == 'Send':
+        elif com == 'send':
             latitude = input("Latitude:")
-            longtitude = input("Longitude")
-            Text = input("Text")
-            contact = input("contact")
+            longtitude = input("Longitude:")
+            Text = input("Text:")
+            contact = input("contact:")
             t = time.time()
             Send_help({"latitude":latitude, "longtitude":longtitude},Text,contact,t)
         elif com == 'accept':
-            index = input("Accept index")
+            index = input("Accept index:")
             Accept(index)
         elif com == 'R':
             continue
-        elif com == 'Quit':
-            quit = true
-            break
         else: 
             print("wrong command")
             continue
@@ -254,7 +250,19 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/get_issue_form_backend', methods=['GET'])
 @cross_origin()
 def get_issue_form_backend():
-    return Response('123', status=(200))
+    re_list = []
+    chunk = {}
+    for i in block.chain :
+        chunk["category"] = 1
+        chunk["location"] = i["message"]["Location"]
+        chunk["ip"] = i["message"]["Account"]
+        chunk["message"] = i["message"]["Text"]
+        chunk["timestamp"] = i["message"]["Timestamp"]
+        chunk["contact"] = i["message"]["Contact"]
+        chunk["resolve"] = i["accept"]
+        chunk["id"] = i["index"]
+        re_list.append(chunk)
+    return jsonify(re_list)
 
 @app.route('/post_issue', methods=['POST', 'OPTIONS'])
 @cross_origin()
@@ -292,9 +300,10 @@ def post_problem_resolve():
         print('only post allow!')
     else:
         data_dict = json.loads(request.get_data())
+        Accept(data_dict["id"])
         return Response('123', status=(200))
 
-
 if __name__ == '__main__':
-    main()
+    init()
+    # main()
     app.run(host='127.0.0.1',port=21, debug=True, use_reloader=False)

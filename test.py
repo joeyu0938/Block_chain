@@ -1,25 +1,3 @@
-score = int(input("請輸入成績："))
-if score >= 60:
-    print("及格")
-else:
-    print("不及格")
-
-num = int(input("請輸入一個數："))
-for i in range(num+1):
-    if i % 2:
-        print(i)
-
-num = input("請輸入學號：")
-print(num[0:2])
-
-num_list = []
-for i in range(6):
-    num_list.append(int(input("請依序輸入第"+str(i+1)+"個數字：")))
-for i in range(6):
-    if num_list[i] > 5:
-        print(num_list[i])
-
-num = int(input("請輸入正方形邊長："))
-def GetArea(x):
-    return x*x
-print(GetArea(num))
+li = [{'index': 1, 'timestamp': None, 'message': {'Location': {'latitude': '1', 'longtitude': '1'}, 'Text': '1', 'Contact': '1', 'Timestamp': 1655213228.105538, 'Account': '10.141.51.165', 'Password': 63582}, 'proof': None, 'hash': '4063b78da1fea5aa589033899e1cd1e6f8b593c5ef1bf249eb2ce35bd7e84c78', 'previous_hash': None, 'accept': 'true', 'accept_info': ['10.141.51.165', 63582, '10.141.51.165', 63582]}, {'index': 2, 'timestamp': None, 'message': {'Location': {'latitude': '2', 'longtitude': '2'}, 'Text': '2', 'Contact': '2', 'Timestamp': 1655213239.3009202, 'Account': '10.141.51.165', 'Password': 63582}, 'proof': None, 'hash': 'cb4be1bd9696e63b9194f7f126af14003d4494b6631cb9032677ef25be5a4b62', 'previous_hash': '4063b78da1fea5aa589033899e1cd1e6f8b593c5ef1bf249eb2ce35bd7e84c78', 'accept': 'false', 'accept_info': None}, {'index': 3, 'timestamp': None, 'message': {'Location': {'latitude': '3', 'longtitude': '3'}, 'Text': '3', 'Contact': '3', 'Timestamp': 1655213243.5293353, 'Account': '10.141.51.165', 'Password': 63582}, 'proof': None, 'hash': 'd76178346ec0f226de713b0390148e9733b424d40b28d90281d4f74971e10569', 'previous_hash': 'cb4be1bd9696e63b9194f7f126af14003d4494b6631cb9032677ef25be5a4b62', 'accept': 'false', 'accept_info': None}]
+for i in li:
+    print(i["index"])
