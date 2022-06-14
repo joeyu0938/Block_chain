@@ -164,14 +164,14 @@ def sending_Client(regINfo,tar_ip,tar_port):
     tcpCliSock.close()
 #傳入 經緯度、附帶的訊息、聯絡方式(建立新的BLOCK)
 #多傳入timestamp
-def Send_help(location,Text,contact,result):
+def Send_help(location,Text,contact,timestemp):
     message = dict()
     message["Location"] = location
     message["Text"] = Text
     message["Contact"] = contact
     # t = time.localtime()
     # result = time.strftime("%m/%d/%Y,%H:%M:%S", t)
-    message["Timestamp"] = result
+    message["Timestamp"] = timestemp
     message["Account"] = regINfo["account"]
     message["Password"] = regINfo["password"]
     block.new_message(message)
@@ -194,9 +194,23 @@ def Accept(index):
     return
 
 def main():
+    global quit
+    quit = false
     print("alert: press R while server function block the register")
-    I= input("Enter your IP: ")
-    P= int(input("Port you want to listen: "))
+    # I= input("Enter your IP: ")
+    # P= int(input("Port you want to listen: "))
+    #自動偵測IP位置
+    # I = "127.0.0.1"
+    temps = socket(AF_INET, SOCK_DGRAM)
+    temps.connect(("8.8.8.8", 80))
+    I = temps.getsockname()[0]
+    temps.close()
+
+    #自動偵測空Port
+    temps = socket()
+    temps.bind(('', 0))
+    P = temps.getsockname()[1]
+
     open_server(I,P)
     if(regINfo == None):
         return
@@ -218,15 +232,20 @@ def main():
             longtitude = input("Longitude")
             Text = input("Text")
             contact = input("contact")
-            Send_help(latitude,longtitude,Text,contact)
+            t = time.time()
+            Send_help({"latitude":latitude, "longtitude":longtitude},Text,contact,t)
         elif com == 'accept':
             index = input("Accept index")
             Accept(index)
         elif com == 'R':
             continue
+        elif com == 'Quit':
+            quit = true
+            break
         else: 
             print("wrong command")
             continue
+    
 
 app=Flask(__name__)
 CORS(app)
