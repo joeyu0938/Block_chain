@@ -278,11 +278,12 @@ def post_issue():
         return ('cors ok', 204, headers)
     elif request.method != 'POST':
         print('only post allow!')
+        return Response('only post allow', status=(405))
     else:
         data_dict = json.loads(request.get_data())
         #前端給的json資料放入Send_help
         Send_help(data_dict["location"], data_dict["message"], data_dict["contact"], data_dict["timestamp"])
-        return Response('123', status=(200))
+        return Response('ok', status=(200))
 
 @app.route('/post_problem_resolve', methods=['POST', 'OPTIONS'])
 @cross_origin()
@@ -298,10 +299,11 @@ def post_problem_resolve():
         return ('cors ok', 204, headers)
     elif request.method != 'POST':
         print('only post allow!')
+        return Response('only post allow', status=(405))
     else:
         data_dict = json.loads(request.get_data())
         Accept(data_dict["id"])
-        return Response('123', status=(200))
+        return Response('ok', status=(200))
 
 if __name__ == '__main__':
     init()
