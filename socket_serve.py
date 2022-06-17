@@ -250,9 +250,9 @@ app.config['CORS_HEADERS'] = 'Content-Type'
 @app.route('/get_issue_form_backend', methods=['GET'])
 @cross_origin()
 def get_issue_form_backend():
-    re_list = []
-    chunk = {}
+    get_return_list = []
     for i in block.chain :
+        chunk = {}
         chunk["category"] = 1
         chunk["location"] = i["message"]["Location"]
         chunk["ip"] = i["message"]["Account"]
@@ -261,8 +261,9 @@ def get_issue_form_backend():
         chunk["contact"] = i["message"]["Contact"]
         chunk["resolve"] = i["accept"]
         chunk["id"] = i["index"]
-        re_list.append(chunk)
-    return jsonify(re_list)
+        get_return_list.append(chunk)
+        print(get_return_list)
+    return jsonify(get_return_list)
 
 @app.route('/post_issue', methods=['POST', 'OPTIONS'])
 @cross_origin()
